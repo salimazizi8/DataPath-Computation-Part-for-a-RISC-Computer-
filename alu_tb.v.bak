@@ -1,0 +1,69 @@
+module ALU_tb;
+    // Declaring internal signals for our Testbench:
+
+    reg [15:0] Ain, Bin;
+    reg [1:0] ALUop;
+    wire [15:0] out;
+    wire Z;
+    // Error signal:
+    reg err;
+    
+
+    // Instantiating ALU (Arithmetic Logic Unit) module:
+    ALU dut(Ain, Bin, ALUop, out, Z);
+
+    // Declaring a Task (Self-Checking Test) to avoid repetitive testing:
+    task self_checker;
+        // The inputs to our self_checking module (Testing inputs):
+        input [15:0] expected_output;
+        input expected_Z;
+
+        begin
+            //'ALU_tb.dut.out' checks the internal signals of dut
+            if (ALU_tb.dut.out !== expected_output) begin   
+                $display("ERROR: ** out is %b, expected %b", ALU_tb.dut.out, expected_output );
+                err = 1'b1;
+            end
+
+            if (ALU_tb.dut.Z !== expected_output) begin
+                $display("ERROR: ** Z is %b, expected %b", ALU_tb.dut.Z, expected_Z);
+                err = 1'b1;
+            end
+
+        
+        end
+
+    endtask
+
+    initial begin
+        ALUop = 2'b00;
+        Ain = 16'b1110_0011_1010_1101;
+        Bin = 16'b0100_0011_1000_1011;
+          
+        
+        // ADDing Ain with Bin
+	#10;
+        self_checker(16'b0010_0111_0011_1000, 1'b0);
+
+        // ANDing Ain and Bin
+	#10;
+        ALUop = 2'b10;
+        self_checker(16'b01000_0111_0001_001, 1'b0);
+        
+        // ORing Ain and Bin
+	#10;
+        ALUop= 2'b01;
+        self_checker(16'b1110_0011_1010_1111, 1'b0);
+
+        // NOT Bin:
+	#10;
+        ALUop = 2'b11;
+        self_checker(16'b101_111_000_111_010_0, 1'b0);
+
+
+        if (~err) $display("PASSED");
+        else $display("FAILED");
+
+    end
+
+endmodule
